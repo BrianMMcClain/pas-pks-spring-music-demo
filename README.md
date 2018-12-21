@@ -7,6 +7,8 @@ PAS+PKS Spring Music Demo
 
 Deploying the Spring Music Application
 ---
+The Spring Music application presents a demo of an app that could be used for tracking an album collection. By default, it populates a dataset with a handful of examples, but can optionally be connected to a backend database to persist changes.
+
 From the `spring-music` directory, we can build our Spring Music application and then push up it with a single command:
 
 ```
@@ -95,3 +97,31 @@ We've also setup three products that help with visability into our applications 
 [PCF Healthwatch](https://docs.pivotal.io/pcf-healthwatch/1-4/index.html) allows for a deeper look into the PCF platform at the infrastructure layer and gives a way to monitor that everything is operating as expected. Even better, it ships with pre-configured dashboards for Pivotal's defined key performance indicators.
 
 ![PCF Healthwatch Dashboard](img/healthwatch.png)
+
+
+Creating a Kubernetes Cluster with PKS
+---
+
+We have our Spring Music application up and running, but we don't have any services that it can connect to so that it can persist any changes. While we could absolutely use [MySQL for PCF](https://docs.pivotal.io/p-mysql/2-4/), for the purpose of this demo let's assume that we need to set up MySQL on our own. Kubernetes is a great place to do this, and with PKS we can create our own Kubernetes cluster with a single command:
+
+```
+pks create-cluster pks-demo --external-hostname pks-cluster.example.com --plan small --num-nodes 2
+```
+
+Since PKS isn't a fork of Kubernetes or a propritary build, and instead chooses to focus on making it easy to consume and operate Kubernetes, the above command will create a plain-old Kubernetes cluster. We can use the same tools and processes that we might be used to if we've used Kubernetes before, with a few additional tools in our toolbelt (such as [Harbor](https://docs.pivotal.io/partners/vmware-harbor/index.html), a container registry that can scan containers for vulnerabilities).
+
+Since this _is_ just Kubernetes, we can use something like [Helm](https://helm.sh/) to automatically deploy and configure MySQL for us:
+
+```
+helm install --name dev-mysql --set mysqlRootPassword=pass,mysqlUser=devUser,mysqlPassword=pass,mysqlDatabase=spring-music stable/mysql
+```
+
+And for the purpose of our demo, we can expose this MySQL service just like we would in any other Kubernetes installation:
+
+```
+kubectl expose deployment dev-mysql --type=LoadBalancer --name=mysql-service
+```
+
+Once the service is exposed, we can get the Ingress IP that we'll eventually tell our application to use to connect to our database.
+
+
