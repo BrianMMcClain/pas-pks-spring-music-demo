@@ -72,3 +72,26 @@ OS Manufacturer:           Microsoft Corporation
 ...
 ```
 
+Logging, Tracing, and Monitoring
+---
+We've also setup three products that help with visability into our applications and the platform as a whole:
+
+**Apps Manager**
+
+[Apps Manager](https://docs.pivotal.io/pivotalcf/2-4/console/index.html) is a great tool for PAS devlopers and adminstrators to manage users and applications. It gives a great at-a-glance view at the applications running on the platform, including the ability to scale apps and stream logs. Additionally, Apps Manager works great with [Spring Boot Actuator](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) to get even more information specifically from your Spring applications, such as request traces and thread dumps.
+
+![Tacing calls made to Spring Music](img/apps-manager.png)
+
+
+**PCF Metrics**
+
+[PCF Metrics](https://pivotal.io/platform/services-marketplace/monitoring-metrics-and-logging/pcf-metrics) offers a deeper look into applications running on PAS, offering real-time metrics to help you troubleshoot. It offers up metrics like requests per minute, request latency, errors, and resource usage all correlated with application events such as scaling or crashes.
+
+![Real-time metrics from our Spring Music application](img/metrics.png)
+
+
+**PCF Healthwatch**
+
+[PCF Healthwatch](https://docs.pivotal.io/pcf-healthwatch/1-4/index.html) allows for a deeper look into the PCF platform at the infrastructure layer and gives a way to monitor that everything is operating as expected. Even better, it ships with pre-configured dashboards for Pivotal's defined key performance indicators.
+
+![PCF Healthwatch Dashboard](img/healthwatch.png)
