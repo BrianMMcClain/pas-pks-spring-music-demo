@@ -124,4 +124,84 @@ kubectl expose deployment dev-mysql --type=LoadBalancer --name=mysql-service
 
 Once the service is exposed, we can get the Ingress IP that we'll eventually tell our application to use to connect to our database.
 
+```
+$ kubectl describe service mysql-service
 
+Name:                     mysql-service
+Namespace:                default
+Labels:                   app=dev-mysql
+                          chart=mysql-0.11.0
+                          heritage=Tiller
+                          release=dev-mysql
+Annotations:              <none>
+Selector:                 app=dev-mysql
+Type:                     LoadBalancer
+IP:                       1.1.1.1
+LoadBalancer Ingress:     1.2.3.4
+Port:                     <unset>  3306/TCP
+TargetPort:               3306/TCP
+NodePort:                 <unset>  30633/TCP
+Endpoints:                1.1.1.1:3306
+Session Affinity:         None
+External Traffic Policy:  Cluster
+```
+
+We can verify our database is up and running by using the MySQL CLI:
+
+```
+mysql --host=1.2.3.4 -u devUser -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 39775
+Server version: 5.7.14 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| spring-music       |
++--------------------+
+2 rows in set (0.06 sec)
+```
+
+Connecting Spring Music to MySQL
+---
+
+So now we have our application (Spring Music on PAS) and our database (MySQL on PKS) up and running, all that's left is to tell our application how to connect to MySQL. For this, we can use a feature in PAS called a ["User Provided Service"](https://docs.pivotal.io/tiledev/2-4/user-provided.html). We can create a user-provided service, supplying the connection string to our MySQL database, and PAS will provide this to our application on the backend. We'll create this service and name it `k8s-db`.
+
+```
+cf create-user-provided-service k8s-db -p '{"uri":"mysql://devUser:pass@1.2.3.4:3306/spring-music"}'
+```
+
+Next, we'll need to bind this service to our application:
+
+```
+cf bind-service spring-music k8s-db
+```
+
+Finally, we'll need to restart our application. Previously, we could either incur a very small amount of downtime (a few sconds), or stand up a second isntance of our application and rebind the URL from the old to the new version to aboid downtime, PCF 2.4 ships with an experimental feature to address this directly. While not quite production-ready, we can use the new `v3-zdt-restart` command to perform a zero-downtime restart on our application:
+
+```
+cf v3-zdt-restart spring-music
+```
+
+This will ensure our application is restarted (of if we use the `v3-zdt-push` command, update our application) without incuring any downtime. If multiple instances are running, PCF will update them one-by-one.
+
+Finally, let's add an album to our Spring Music application and ensure these changes are written to the MySQL database
+
+![Adding an album to Spring Music](img/add-album.png)
+
+And if we check in MySQL, we'll see our new album added to our database:
+
+```
+mysql> select title, artist, release_year from album where artist = "AC/DC";
++--------------+--------+--------------+
+| title        | artist | release_year |
++--------------+--------+--------------+
+| Back In Back | AC/DC  | 1980         |
++--------------+--------+--------------+
+1 row in set (1.42 sec)
+```
