@@ -1,0 +1,4 @@
+[submodule "spring-music"]
+	path = spring-music
+	url = https://github.com/BrianMMcClain/spring-music.git
+	branch = master
