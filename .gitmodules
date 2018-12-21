@@ -2,3 +2,7 @@
 	path = spring-music
 	url = https://github.com/BrianMMcClain/spring-music.git
 	branch = master
+[submodule "NET-sample-app"]
+	path = NET-sample-app
+	url = https://github.com/BrianMMcClain/NET-sample-app.git
+	branch = master
