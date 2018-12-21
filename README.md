@@ -1,7 +1,11 @@
 PAS+PKS Spring Music Demo
 ===
 
+In this demo, we take a look at how PAS and PKS can work in tandum, where PAS will run a frontend application and PKS will run our backend database. While PCF does provide access to MySQL specifically (and many other services!), this is also applicable to those situations where an application may fit the cloud-native, [12 Factor](https://12factor.net/) Application model, but the backing service might have special requirements that don't fit that model.
+
 ![Architecture of our demo](img/arch.png)
+
+All of these components were configured and installed by [Ops Manager](https://pivotal.io/platform/pcf-components/pcf-ops-manager), which provides an easy way to install and upgrade things like PAS, PKS, services, etc. Below you can see all of the componentes installed for this demo:
 
 ![Installed components on Ops Manager](img/opsman.png)
 
