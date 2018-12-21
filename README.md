@@ -222,3 +222,16 @@ Lukily, PCF knows that these two things should be true. As such, it will spring 
 
 1. PAS will immediately spin up new application instances that suddenly found themselves without a VM to run on, spreading the load across the remaining VMs
 2. [BOSH](http://bosh.io/) (the underlying operations automation layer) will notice the VM has gone down and create a new one in it's place. It knows this has happened because it maintains a constant heartbeat with every VM that it's deployed and manages. Once this machine is back up, it enters back in the "pool" of eligble machines to run application isntances, and as new ones are spun up, PAS will use this new machine to even out the load.
+
+Automatic Patching 
+---
+
+Finally, the question remains: how do I easily patch my infrastructure? How to do I get the latest sercurity patch to address that big CVE that just hit? While Ops Manager boils this down to just a couple of clicks, we can take this a bit further and even fully automate it. How more and more people are doing this is to use [Concourse](https://concourse-ci.org/), a CI/CD solution based on the idea of "pipelines" (one task feeding into the next).
+
+![PKS upgrade pipeline](img/pipeline.png)
+
+With these pipelines, we can bring in and install patches into our environment. A common scenario we've seen is that operators will have their pipeline automatically install patches in their lower environments (dev and test), then when they're happy with the stability, apply them to staging by manually running another pipeline.
+
+![Pivotal's Oded upgrades his PKS install from his Apple Watch](img/upgrade-tweet.png)
+
+https://twitter.com/odedia/status/1072228525002903552
