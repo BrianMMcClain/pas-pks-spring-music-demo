@@ -205,3 +205,16 @@ mysql> select title, artist, release_year from album where artist = "AC/DC";
 +--------------+--------+--------------+
 1 row in set (1.42 sec)
 ```
+
+2-Layer Autorecovery
+---
+
+With our app up and running, happily serving requests, we're then faced with everything that comes with _keeping_ it up and running. The platform knows, though, what it means to be healthy. So if, say, one of the VMs running our application instances goes down (or is fully deleted), we have two things to remediate:
+
+1. I've suddenly lost the VM running an instance of my application, I need a new one spun up in it's place on another VM
+2. I've sudden lost a large chunk of my capacity to run future application instances, I need to replace that VM
+
+Lukily, PCF knows that these two things should be true. As such, it will spring into action in a couple of wys:
+
+1. PAS will immediately spin up new application instances that suddenly found themselves without a VM to run on, spreading the load across the remaining VMs
+2. [BOSH](http://bosh.io/) (the underlying operations automation layer) will notice the VM has gone down and create a new one in it's place. It knows this has happened because it maintains a constant heartbeat with every VM that it's deployed and manages. Once this machine is back up, it enters back in the "pool" of eligble machines to run application isntances, and as new ones are spun up, PAS will use this new machine to even out the load.
