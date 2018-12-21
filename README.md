@@ -234,7 +234,7 @@ Finally, the question remains: how do I easily patch my infrastructure? How do I
 
 With these pipelines, we can bring in and install patches into our environment. A common scenario we've seen is that operators will have their pipeline automatically install patches in their lower environments (dev and test), then when they're happy with the stability, apply them to staging by manually running another pipeline. 
 
-Read more about the pcf-pipelines [here](https://pivotal.io/concourse/operators) and on [GitHub](https://github.com/pivotal-cf/pcf-pipelines), or on the [Pivotal Network](https://network.pivotal.io/products/pcf-automation/) release. _(Note: To get access to this product on Pivotal Network, contact your Pivotal Support/Sales team.)
+Read more about the pcf-pipelines [here](https://pivotal.io/concourse/operators) and on [GitHub](https://github.com/pivotal-cf/pcf-pipelines), or on the [Pivotal Network](https://network.pivotal.io/products/pcf-automation/) release. _(Note: To get access to this product on Pivotal Network, contact your Pivotal Support/Sales team.)_
 
 ![Pivotal's Oded upgrades his PKS install from his Apple Watch](img/upgrade-tweet.png)
 
