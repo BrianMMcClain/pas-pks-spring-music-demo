@@ -5,22 +5,24 @@ In this demo, we take a look at how PAS and PKS can work in tandum, where PAS wi
 
 ![Architecture of our demo](img/arch.png)
 
-All of these components were configured and installed by [Ops Manager](https://pivotal.io/platform/pcf-components/pcf-ops-manager), which provides an easy way to install and upgrade things like PAS, PKS, services, etc. Below you can see all of the componentes installed for this demo:
+All of these components were configured and installed by [Ops Manager](https://pivotal.io/platform/pcf-components/pcf-ops-manager), which provides an easy way to install and upgrade things like PAS, PKS, services, etc. Below you can see all of the components installed for this demo:
 
 ![Installed components on Ops Manager](img/opsman.png)
+
+Refer to the documentation for steps to install [PCF Healthwatch](https://docs.pivotal.io/pcf-healthwatch/1-4/installing.html), [PCF Metrics](https://docs.pivotal.io/pcf-metrics/1-5/installing.html), and [MySQL for PCF](https://docs.pivotal.io/p-mysql/1-10/installing.html).
 
 Deploying the Spring Music Application
 ---
 The Spring Music application presents a demo of an app that could be used for tracking an album collection. By default, it populates a dataset with a handful of examples, but can optionally be connected to a backend database to persist changes.
 
-From the `spring-music` directory, we can build our Spring Music application and then push up it with a single command:
+From the `spring-music` directory, we can build our Spring Music application and then push it with a single command:
 
 ```
 ./gradlew clean assemble
 cf push
 ```
 
-This sill use the [manifest.yml](spring-music/manifest.yml) for configuration, specifying basic options like the application's name and memory requirements. The PAS platform will detect that we're deploying a Java Spring application, and automatically use the [Java Buildpack](https://github.com/cloudfoundry/java-buildpack) to supply the runtime, framework, and dependencies to package and run our application. Once the buildpack completes, we'll see our application soon up and running:
+This will use the [manifest.yml](spring-music/manifest.yml) for configuration, specifying basic options like the application's name and memory requirements. The PAS platform will detect that we're deploying a Java Spring application, and automatically use the [Java Buildpack](https://github.com/cloudfoundry/java-buildpack) to supply the runtime, framework, and dependencies to package and run our application. Once the buildpack completes, we'll see our application soon up and running:
 
 ```
 ...
@@ -44,7 +46,7 @@ With the installed support of PAS for Windows, we can just as easily deploy a .N
 cf push
 ```
 
-A few moments later, as espected, our .Net application is up and running on a Windows Server machine!
+A few moments later, as expected, our .Net application is up and running on a Windows Server machine!
 
 ```
 ...
@@ -84,7 +86,7 @@ We've also setup three products that help with visability into our applications 
 
 **Apps Manager**
 
-[Apps Manager](https://docs.pivotal.io/pivotalcf/2-4/console/index.html) is a great tool for PAS devlopers and adminstrators to manage users and applications. It gives a great at-a-glance view at the applications running on the platform, including the ability to scale apps and stream logs. Additionally, Apps Manager works great with [Spring Boot Actuator](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) to get even more information specifically from your Spring applications, such as request traces and thread dumps.
+[Apps Manager](https://docs.pivotal.io/pivotalcf/2-4/console/index.html) is a great tool for PAS devlopers and administrators to manage users and applications. It gives a great at-a-glance view at the applications running on the platform, including the ability to scale apps and stream logs. Additionally, Apps Manager works great with [Spring Boot Actuator](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready) to get even more information specifically from your Spring applications, such as request traces and thread dumps.
 
 ![Tacing calls made to Spring Music](img/apps-manager.png)
 
@@ -186,15 +188,15 @@ Next, we'll need to bind this service to our application:
 cf bind-service spring-music k8s-db
 ```
 
-Finally, we'll need to restart our application. Previously, we could either incur a very small amount of downtime (a few sconds), or stand up a second isntance of our application and rebind the URL from the old to the new version to aboid downtime, PCF 2.4 ships with an experimental feature to address this directly. While not quite production-ready, we can use the new `v3-zdt-restart` command to perform a zero-downtime restart on our application:
+Finally, we'll need to restart our application. Previously, we could either incur a very small amount of downtime (a few seconds), or stand up a second instance of our application and rebind the URL from the old to the new version to avoid downtime, PCF 2.4 ships with an experimental feature to address this directly. While not quite production-ready, we can use the new `v3-zdt-restart` command to perform a zero-downtime restart on our application:
 
 ```
 cf v3-zdt-restart spring-music
 ```
 
-This will ensure our application is restarted (of if we use the `v3-zdt-push` command, update our application) without incuring any downtime. If multiple instances are running, PCF will update them one-by-one.
+This will ensure our application is restarted (or if we use the `v3-zdt-push` command, updated) without incurring any downtime. If multiple instances are running, PCF will update them one-by-one.
 
-Finally, let's add an album to our Spring Music application and ensure these changes are written to the MySQL database
+Finally, let's add an album to our Spring Music application and ensure these changes are written to the MySQL database.
 
 ![Adding an album to Spring Music](img/add-album.png)
 
@@ -215,22 +217,24 @@ mysql> select title, artist, release_year from album where artist = "AC/DC";
 
 With our app up and running, happily serving requests, we're then faced with everything that comes with _keeping_ it up and running. The platform knows, though, what it means to be healthy. So if, say, one of the VMs running our application instances goes down (or is fully deleted), we have two things to remediate:
 
-1. I've suddenly lost the VM running an instance of my application, I need a new one spun up in it's place on another VM
-2. I've sudden lost a large chunk of my capacity to run future application instances, I need to replace that VM
+1. I've suddenly lost the VM running an instance of my application, so I need a new one spun up in its place on another VM.
+2. I've suddenly lost a large chunk of my capacity to run future application instances, so I need to replace that VM.
 
-Lukily, PCF knows that these two things should be true. As such, it will spring into action in a couple of wys:
+Luckily, PCF knows that these two things should be true. As such, it will spring into action in a couple of ways:
 
-1. PAS will immediately spin up new application instances that suddenly found themselves without a VM to run on, spreading the load across the remaining VMs
-2. [BOSH](http://bosh.io/) (the underlying operations automation layer) will notice the VM has gone down and create a new one in it's place. It knows this has happened because it maintains a constant heartbeat with every VM that it's deployed and manages. Once this machine is back up, it enters back in the "pool" of eligble machines to run application isntances, and as new ones are spun up, PAS will use this new machine to even out the load.
+1. PAS will immediately spin up new application instances that suddenly found themselves without a VM to run on, spreading the load across the remaining VMs.
+2. [BOSH](http://bosh.io/) (the underlying operations automation layer) will notice the VM has gone down and create a new one in its place. It knows this has happened because it maintains a constant heartbeat with every VM that it's deployed and manages. Once this machine is back up, it enters back in the "pool" of eligible machines to run application isntances, and as new ones are spun up, PAS will use this new machine to even out the load.
 
 Automatic Patching 
 ---
 
-Finally, the question remains: how do I easily patch my infrastructure? How to do I get the latest sercurity patch to address that big CVE that just hit? While Ops Manager boils this down to just a couple of clicks, we can take this a bit further and even fully automate it. How more and more people are doing this is to use [Concourse](https://concourse-ci.org/), a CI/CD solution based on the idea of "pipelines" (one task feeding into the next).
+Finally, the question remains: how do I easily patch my infrastructure? How do I get the latest security patch to address that big CVE that just hit? While Ops Manager boils this down to just a couple of clicks, we can take this a bit further and even fully automate it. How more and more people are doing this is to use [Concourse](https://concourse-ci.org/), a CI/CD solution based on the idea of "pipelines" (one task feeding into the next).
 
 ![PKS upgrade pipeline](img/pipeline.png)
 
-With these pipelines, we can bring in and install patches into our environment. A common scenario we've seen is that operators will have their pipeline automatically install patches in their lower environments (dev and test), then when they're happy with the stability, apply them to staging by manually running another pipeline.
+With these pipelines, we can bring in and install patches into our environment. A common scenario we've seen is that operators will have their pipeline automatically install patches in their lower environments (dev and test), then when they're happy with the stability, apply them to staging by manually running another pipeline. 
+
+Read more about the pcf-pipelines [here](https://pivotal.io/concourse/operators) and on [GitHub](https://github.com/pivotal-cf/pcf-pipelines), or on the [Pivotal Network](https://network.pivotal.io/products/pcf-automation/) release. _(Note: To get access to this product on Pivotal Network, contact your Pivotal Support/Sales team.)
 
 ![Pivotal's Oded upgrades his PKS install from his Apple Watch](img/upgrade-tweet.png)
 
